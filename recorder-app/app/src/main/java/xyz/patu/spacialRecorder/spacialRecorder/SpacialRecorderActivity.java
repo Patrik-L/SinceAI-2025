@@ -43,6 +43,7 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -176,6 +177,13 @@ public class SpacialRecorderActivity extends AppCompatActivity
 
     private  boolean uploadNextImage = false;
     private Button captureButton;
+    private Button returnButton;
+    private Button confirmButton;
+    private Button rejectButton;
+    private Button acceptButton;
+    private TextView itemTitle;
+    private ImageView itemImage;
+    private TextView itemDescription;
     // ARCore session that supports camera sharing.
     private Session sharedSession;
     // Camera capture session. Used by both non-AR and AR modes.
@@ -307,6 +315,63 @@ public class SpacialRecorderActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        switchToActivityMain();
+    }
+
+    protected void switchToLoadingLayout() {
+        setContentView(R.layout.loading_layout);
+        try {
+            Thread.sleep(3 * 1000);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
+        switchToSelectorLayout();
+    }
+
+    protected void switchToSelectorLayout() {
+        setContentView(R.layout.selector_layout);
+
+        returnButton = findViewById(R.id.return_button);
+        confirmButton = findViewById(R.id.confirm_button);
+
+        itemTitle = findViewById(R.id.item_title);
+        itemImage = findViewById(R.id.item_image);
+        itemDescription = findViewById(R.id.item_description);
+        rejectButton = findViewById(R.id.item_reject_button);
+        acceptButton = findViewById(R.id.item_accept_button);
+
+
+
+        returnButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                switchToActivityMain();
+            }
+        });
+
+        confirmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                switchToActivityMain();
+            }
+        });
+
+        rejectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setItemData("Bepis","Patrik tykkää kuunnella penile lorea");
+            }
+        });
+
+        acceptButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                switchToActivityMain();
+            }
+        });
+    }
+
+    protected void switchToActivityMain () {
         setContentView(R.layout.activity_main);
 
         Bundle extraBundle = getIntent().getExtras();
@@ -335,12 +400,17 @@ public class SpacialRecorderActivity extends AppCompatActivity
         captureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    uploadNextImage = true;
+                uploadNextImage = true;
+                switchToLoadingLayout();
             }
         });
         coordinateTextView.setText("Initializing");
     }
 
+    protected void setItemData(String title, String description) {
+    itemTitle.setText(title);
+    itemDescription.setText(description);
+    }
     @Override
     protected void onDestroy() {
         if (sharedSession != null) {
