@@ -667,8 +667,9 @@ public class SpacialRecorderActivity extends AppCompatActivity
         byte[] bytes = new byte[buffer.capacity()];
         buffer.get(bytes);
 
-        byte[] encodedBytes = Base64.encode(bytes,Base64.NO_WRAP);
-        String encodedString = new String(encodedBytes);
+        Log.w(TAG, "data.length=" + bytes.length + "; width=" + image.getWidth() + "; height=" + image.getHeight());
+
+        String encodedString = Base64.encodeToString(bytes,Base64.DEFAULT);
 
         JSONObject spacialImage = new JSONObject();
         float[] pos = currentPosition.getTranslation();
