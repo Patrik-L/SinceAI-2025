@@ -327,7 +327,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
         tapHelper = new TapHelper(this);
         surfaceView.setOnTouchListener(tapHelper);
 
-        coordinateTextView = findViewById(R.id.locationText);
+        coordinateTextView = findViewById(R.id.location_data);
         coordinateTextView.setText("Initializing");
 
         captureButton = findViewById(R.id.shutter_button);
