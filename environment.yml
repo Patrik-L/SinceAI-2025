@@ -1,0 +1,13 @@
+name: sinceAI
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python
+  - transformers
+  - depth-pro
+  - pip
+  - numpy
+  - conda-forge::opencv
+  - pip:
+    - ultralytics
