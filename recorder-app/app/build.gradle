@@ -16,10 +16,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.google.ar.core.examples.java.sharedcamera"
+    namespace "xyz.patu.spacialRecorder.spacialRecorder"
     compileSdkVersion 36
     defaultConfig {
-        applicationId "com.google.ar.core.examples.java.sharedcamera"
+        applicationId "xyz.patu.spacialRecorder.spacialRecorder"
 
         // Camera2 API requires minSdkVersion >= 23
         // "AR Optional" apps must declare minSdkVersion >= 14.

@@ -4,15 +4,11 @@ export interface PositionedItem {
     y: number;
     z: number;
   };
-  rotation?: {
-    pitch: number;
-    yaw: number;
-    roll: number;
-  };
+  rotation?: number[];
 }
 
 export interface SpacialImage extends PositionedItem {
-  fov: number;
+  focalLength: number;
   imageData: Blob;
 }
 
