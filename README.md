@@ -6,12 +6,12 @@ Android application with YOLO11n based object detection with depth analysis.
 
 The SinceAI 2025 Valmet challenge was to find a way to combine 3D virtual environments of factories, and digital twins of technical devices in an automatic way. With techniques like Gaussian splatting you can efficiently create virtual environments, but it lacks the capability to automatically detect technical devices. Factories can have up to thousands of different devices, so manually adding those would be time consuming. 
 
-Our idea is to make a way to detect technical devices during the 3D scanning process, and use the location data we gather during that to accurately combine the virtual environment and the digital twins of technical devices.
+Our idea is to make a way to detect technical devices during the 3D scanning process, and use the location data we gather during that to accurately combine the virtual environment and the digital twins of technical devices. We start with single photo detection, that can then be later scaled up to automatically do it during 3D scanning with video. 
 
 
 ## Usage
 
-The build can be downloaded to the phone to try it out. With the application you'll take a photo, the photo will be processed by a model through fastAPI, and sent back to the phone. The processed photo has the identified objects marked with information. It currently uses generic data to identify any objects.
+The build can be downloaded to the phone to try it out. With the application you'll take a photo, the photo will be processed by a model through fastAPI, and sent back to the phone. The processed photo has the identified objects marked with information. It currently uses generic data to identify any objects, and has a test UI template for showing information about the identified objects.
 
 ## Future plans
 
