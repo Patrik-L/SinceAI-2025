@@ -85,8 +85,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -739,6 +743,45 @@ public class SpacialRecorderActivity extends AppCompatActivity
         Log.i(TAG, "Uploading image:" + spacialImage);
         try {
             writeToFile(spacialImage.toString(2));
+            // Upload spatial image json to rest server
+            new Thread(() -> {
+                try {
+                    String host = "https://4f1af25b73ef.ngrok-free.app";
+                    URL url = new URL(host + "/uploadSpacialImage");
+                    Log.i(TAG, "Uploading to: " + url.toString());
+
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Type", "application/json");
+
+                    // Convert the JSON object to a byte array to get its length.
+                    byte[] input = spacialImage.toString().getBytes(StandardCharsets.UTF_8);
+                    int postDataLength = input.length;
+
+                    // --- FIX: Set the Content-Length header ---
+                    conn.setRequestProperty("Content-Length", Integer.toString(postDataLength));
+
+                    conn.setDoOutput(true);
+
+                    // Write the data to the connection.
+                    try (OutputStream os = conn.getOutputStream()) {
+                        os.write(input, 0, postDataLength);
+                    }
+                    
+                    int responseCode = conn.getResponseCode();
+                    Log.i(TAG, "Upload response code: " + responseCode);
+                    
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        Log.i(TAG, "Image uploaded successfully");
+                    } else {
+                        Log.e(TAG, "Upload failed with response code: " + responseCode);
+                    }
+                    conn.disconnect();
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to upload image: " + e.getMessage(), e);
+                }
+            }).start();
+            
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
