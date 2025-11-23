@@ -22,6 +22,15 @@
     android:visibility="visible"
     tools:context="com.google.ar.core.examples.java.sharedcamera.SharedCameraActivity">
 
+    <ImageView
+        android:id="@+id/background_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/background_image"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <android.opengl.GLSurfaceView
         android:id="@+id/glsurfaceview"
         android:layout_width="wrap_content"
