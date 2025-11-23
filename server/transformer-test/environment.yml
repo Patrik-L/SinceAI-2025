@@ -1,0 +1,19 @@
+name: transformer-test
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python==3.10
+  - transformers>=4.49.0
+  - pillow
+  - timm
+  - datasets
+  - pip
+  - evaluate
+  - accelerate
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/rocm6.4
+      - torch
+      - torchvision
+
+  # !pip install -U transformers datasets evaluate accelerate timm

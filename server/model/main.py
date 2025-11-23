@@ -7,16 +7,16 @@ from transformers import DepthProImageProcessorFast, DepthProForDepthEstimation,
 
 #loading yolo model
 yolo_model = YOLO('yolo11n.pt')
-image_path = 'image.png'
-image = Image.open("./image.png")
+image_path = 'image2.jpeg'
+image = Image.open("./image2.jpeg")
 yolo_input = cv2.imread(image_path)
 results = yolo_model(yolo_input)
 
-# device = infer_device()
+device = infer_device()
 
 
 print(torch.__version__)
-print(torch.cuda.is_available(), 'cuda');
+print(torch.cuda.is_available(), device);
 
 
 detected_items = [] #box around identified object
@@ -24,8 +24,9 @@ for result in results:
     boxes = result.boxes.xyxy.cpu().numpy() # get bounding boxes
     classes = result.boxes.cls.cpu().numpy() # get class labels
 for box, cls in zip(boxes, classes):
+    object_name=yolo_model.names[int(cls)]
     x1, y1, x2, y2 = map(int, box[:4])
-    detected_items.append((x1, y1, x2, y2))
+    detected_items.append((x1, y1, x2, y2, object_name))
     cv2.rectangle(yolo_input, (x1, y1), (x2, y2), (255, 0, 230), 2) # Draws rectangle
 
 
@@ -45,7 +46,7 @@ for box, cls in zip(boxes, classes):
 
 
 image_processor = DepthProImageProcessorFast.from_pretrained("apple/DepthPro-hf")
-model = DepthProForDepthEstimation.from_pretrained("apple/DepthPro-hf").to('cuda')
+model = DepthProForDepthEstimation.from_pretrained("apple/DepthPro-hf").to(device)
 
 inputs = image_processor(images=image, return_tensors="pt").to(model.device)
 
@@ -60,16 +61,15 @@ print(post_processed_output[0])
 
 depth = post_processed_output[0]["predicted_depth"]
 depth_np = depth.squeeze().cpu().numpy()
-print("np", depth_np)
 
 # Calculate depth for detected persons and display on image
-for x1, y1, x2, y2 in detected_items:
+for x1, y1, x2, y2, name in detected_items:
  center_x = (x1 + x2) // 2
  center_y = (y1 + y2) // 2
  print(center_x, center_y)
 # Extract depth value at the center of the bounding box
  depth_value = depth_np[center_y, center_x]
- text = f'Depth: {depth_value:.2f}m'
+ text = f'{name} - Depth: {depth_value:.2f}m'
 # Define font properties
  font = cv2.FONT_HERSHEY_SIMPLEX
  font_scale = 1.2

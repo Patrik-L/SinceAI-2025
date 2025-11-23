@@ -612,10 +612,10 @@ public class SpacialRecorderActivity extends AppCompatActivity
         Size desiredCpuImageSize = sharedSession.getCameraConfig().getImageSize();
         cpuImageReader =
                 ImageReader.newInstance(
-                        desiredCpuImageSize.getWidth(),
-                        desiredCpuImageSize.getHeight(),
-                        ImageFormat.YUV_420_888,
-                        2);
+                        2000,
+                        2000,
+                        ImageFormat.JPEG,
+                        1);
         cpuImageReader.setOnImageAvailableListener(this, backgroundHandler);
 
         // When ARCore is running, make sure it also updates our CPU image surface.
@@ -719,7 +719,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
 
     private void writeToFile(String data) {
         try {
-            Log.i(TAG, "writing file to" + getFilesDir());
+            Log.i(TAG, "writing file to: " + getFilesDir());
             Context context = getApplicationContext();
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("spacial-images.json", Context.MODE_PRIVATE));
             outputStreamWriter.write(data);
@@ -734,12 +734,12 @@ public class SpacialRecorderActivity extends AppCompatActivity
 
     private JSONObject imageToSpacialImage(Image image) {
         ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-        byte[] bytes = new byte[buffer.capacity()];
+        byte[] bytes = new byte[buffer.remaining()];
         buffer.get(bytes);
 
         Log.w(TAG, "data.length=" + bytes.length + "; width=" + image.getWidth() + "; height=" + image.getHeight());
 
-        String encodedString = Base64.encodeToString(bytes,Base64.DEFAULT);
+        String encodedString = Base64.encodeToString(bytes,Base64.NO_WRAP);
 
         JSONObject spacialImage = new JSONObject();
         float[] pos = currentPosition.getTranslation();
