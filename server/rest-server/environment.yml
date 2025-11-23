@@ -13,6 +13,8 @@ dependencies:
   - accelerate
   - numpy
   - conda-forge::opencv
+  - fastapi
+  - uvicorn
   - pip:
       - --extra-index-url https://download.pytorch.org/whl/rocm6.4
       - torch
