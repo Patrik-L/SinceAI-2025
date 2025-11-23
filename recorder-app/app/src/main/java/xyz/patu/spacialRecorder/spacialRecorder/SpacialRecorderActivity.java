@@ -359,7 +359,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
         rejectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                setItemData("Bepis","Patrik tykkää kuunnella penile lorea");
+                setItemData("Bepis","Patrik tykkää kuunnella penile lorea", R.drawable.banana);
             }
         });
 
@@ -407,9 +407,10 @@ public class SpacialRecorderActivity extends AppCompatActivity
         coordinateTextView.setText("Initializing");
     }
 
-    protected void setItemData(String title, String description) {
+    protected void setItemData(String title, String description, int img ) {
     itemTitle.setText(title);
     itemDescription.setText(description);
+    itemImage.setImageResource(img);
     }
     @Override
     protected void onDestroy() {
