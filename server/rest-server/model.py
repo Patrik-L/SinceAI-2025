@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import cv2
+import time
 from PIL import Image
 from ultralytics import YOLO
 from transformers import DepthProImageProcessorFast, DepthProForDepthEstimation, infer_device
@@ -92,6 +93,11 @@ def executeModel(imagePath):
 
     # Display person detection with depth values
     # Save the image with detection and depth annotations
-    output_image = cv2.imwrite('object_detection_with_depth.jpg', yolo_input)
+    output_dir = "processed_images"
 
-    return detected_matches, output_image 
+    timestamp = round(time.time() * 1000)
+    filename = f"{output_dir}/image_{timestamp}.jpg"
+    
+    cv2.imwrite(filename, yolo_input)
+
+    return detected_matches, filename
