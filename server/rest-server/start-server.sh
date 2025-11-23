@@ -13,13 +13,17 @@ if ! conda env list | grep -q "^$ENV_NAME "; then
     exit 1
 fi
 
-# Activate the environment
-echo "Activating $ENV_NAME environment..."
-conda activate $ENV_NAME
-
-if [[ $? -ne 0 ]]; then
-    echo "Error: Failed to activate $ENV_NAME environment"
-    exit 1
+# Check if already in the correct environment
+if [[ "$CONDA_DEFAULT_ENV" != "$ENV_NAME" ]]; then
+    echo "Activating $ENV_NAME environment..."
+    conda activate $ENV_NAME
+    
+    if [[ $? -ne 0 ]]; then
+        echo "Error: Failed to activate $ENV_NAME environment"
+        exit 1
+    fi
+else
+    echo "Already in $ENV_NAME environment"
 fi
 
 # Start FastAPI server
