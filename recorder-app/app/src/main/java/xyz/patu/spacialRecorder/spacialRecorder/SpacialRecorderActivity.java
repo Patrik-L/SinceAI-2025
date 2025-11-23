@@ -44,11 +44,13 @@ import android.view.Surface;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
@@ -180,13 +182,17 @@ public class SpacialRecorderActivity extends AppCompatActivity
     private float focalLength;
 
     private  boolean uploadNextImage = false;
+    private int currentView;
+    private CoordinatorLayout bottomSheet;
     private Button captureButton;
     private Button returnButton;
     private Button confirmButton;
     private Button rejectButton;
     private Button acceptButton;
+    private ProgressBar progressBar;
     private TextView itemTitle;
     private ImageView itemImage;
+    private ImageView backgroundImage;
     private TextView itemDescription;
     // ARCore session that supports camera sharing.
     private Session sharedSession;
@@ -319,63 +325,10 @@ public class SpacialRecorderActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        switchToActivityMain();
+        initUiComponents();
     }
 
-    protected void switchToLoadingLayout() {
-        setContentView(R.layout.loading_layout);
-        try {
-            Thread.sleep(3 * 1000);
-        } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
-        }
-        switchToSelectorLayout();
-    }
-
-    protected void switchToSelectorLayout() {
-        setContentView(R.layout.selector_layout);
-
-        returnButton = findViewById(R.id.return_button);
-        confirmButton = findViewById(R.id.confirm_button);
-
-        itemTitle = findViewById(R.id.item_title);
-        itemImage = findViewById(R.id.item_image);
-        itemDescription = findViewById(R.id.item_description);
-        rejectButton = findViewById(R.id.item_reject_button);
-        acceptButton = findViewById(R.id.item_accept_button);
-
-
-
-        returnButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                switchToActivityMain();
-            }
-        });
-
-        confirmButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                switchToActivityMain();
-            }
-        });
-
-        rejectButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                setItemData("Bepis","Patrik tykkää kuunnella penile lorea", R.drawable.banana);
-            }
-        });
-
-        acceptButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                switchToActivityMain();
-            }
-        });
-    }
-
-    protected void switchToActivityMain () {
+    protected void initUiComponents () {
         setContentView(R.layout.activity_main);
 
         Bundle extraBundle = getIntent().getExtras();
@@ -405,10 +358,83 @@ public class SpacialRecorderActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 uploadNextImage = true;
-                switchToLoadingLayout();
+                switchView(2);
             }
         });
         coordinateTextView.setText("Initializing");
+
+        returnButton = findViewById(R.id.return_button);
+        confirmButton = findViewById(R.id.confirm_button);
+        progressBar = findViewById(R.id.progressBar);
+
+        itemTitle = findViewById(R.id.item_title);
+        itemImage = findViewById(R.id.item_image);
+        itemDescription = findViewById(R.id.item_description);
+        rejectButton = findViewById(R.id.item_reject_button);
+        acceptButton = findViewById(R.id.item_accept_button);
+
+        bottomSheet = findViewById(R.id.bottom_sheet);
+        backgroundImage = findViewById(R.id.background_img);
+
+
+
+        returnButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                switchView(1);
+            }
+        });
+
+        confirmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                switchView(1);
+            }
+        });
+
+        rejectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setItemData("Banana","Did you know that Banana in German is Banane?", R.drawable.banana);
+            }
+        });
+
+        acceptButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                switchView(1);
+            }
+        });
+        switchView(1);
+    }
+    protected void switchView (int view) {
+        switch (view) {
+            case 1:
+                progressBar.setVisibility(View.INVISIBLE);
+                returnButton.setVisibility(View.INVISIBLE);
+                confirmButton.setVisibility(View.INVISIBLE);
+                bottomSheet.setVisibility(View.INVISIBLE);
+                backgroundImage.setVisibility(View.INVISIBLE);
+
+                surfaceView.setVisibility(View.VISIBLE);
+                captureButton.setVisibility(View.VISIBLE);
+                break;
+            case 2:
+                captureButton.setVisibility(View.INVISIBLE);
+                surfaceView.setVisibility(View.INVISIBLE);
+
+                backgroundImage.setVisibility(View.VISIBLE);
+                progressBar.setVisibility(View.VISIBLE);
+                returnButton.setVisibility(View.VISIBLE);
+                switchView(3);
+                break;
+            case 3:
+                progressBar.setVisibility(View.INVISIBLE);
+
+                confirmButton.setVisibility(View.VISIBLE);
+                bottomSheet.setVisibility(View.VISIBLE);
+                break;
+        }
     }
 
     protected void setItemData(String title, String description, int img ) {

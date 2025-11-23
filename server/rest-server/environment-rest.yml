@@ -4,6 +4,7 @@ channels:
   - conda-forge
 dependencies:
   - python
+  - pillow
   - fastapi
   - uvicorn
   - pydantic
