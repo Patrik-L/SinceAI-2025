@@ -197,6 +197,8 @@ public class SpacialRecorderActivity extends AppCompatActivity
     private ImageView itemImage;
     private ImageView backgroundImage;
     private TextView itemDescription;
+    private boolean loading;
+    private Thread timeOutThread;
     // ARCore session that supports camera sharing.
     private Session sharedSession;
     // Camera capture session. Used by both non-AR and AR modes.
@@ -458,6 +460,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
                 synchronized (loadingLock) {
                     try {
                         System.out.println("Thread A: Waiting for notification...");
+                        loading = true;
                         loadingLock.wait();  // Thread A waits until notified
                         System.out.println("Thread A: Notified and now continuing...");
                         runOnUiThread(() -> {
@@ -470,16 +473,22 @@ public class SpacialRecorderActivity extends AppCompatActivity
             }
         });
 
-        Thread timeOutThread = new Thread(new Runnable() {
+        timeOutThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    // Make the current thread sleep for 2 seconds (2000 milliseconds)
-                    Thread.sleep(5000);
+                    // Make the current thread sleep for 60 seconds (60000 milliseconds)
+                    Thread.sleep(30000);
                 } catch (InterruptedException e) {
                     System.out.println("Thread interrupted");
                 }
-                loadingNotify();
+                if (loading) {
+                    runOnUiThread(() -> {
+                        switchView(1);
+                    });
+                }
+
+                System.out.println("Loading timeout");
             }
         });
         loadingThread.start();
@@ -487,6 +496,8 @@ public class SpacialRecorderActivity extends AppCompatActivity
     }
 
     protected void loadingNotify() {
+        loading = false;
+        timeOutThread.interrupt();
         synchronized (loadingLock) {
             loadingLock.notify();
         }
