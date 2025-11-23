@@ -49,6 +49,8 @@ def process_spacial_image(spacial_image: SpacialImage, processed_image: Processe
         image = Image.open(io.BytesIO(base64.b64decode(spacial_image.imageData)))
         image = image.rotate(-90, expand=True)
         
+        print("recieved spacial image with size:", image.size)
+        
         # Create output directory if it doesn't exist
         output_dir = "original_images"
         os.makedirs(output_dir, exist_ok=True)
