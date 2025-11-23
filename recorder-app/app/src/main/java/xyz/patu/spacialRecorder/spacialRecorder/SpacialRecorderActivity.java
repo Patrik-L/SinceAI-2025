@@ -52,6 +52,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
@@ -183,13 +184,14 @@ public class SpacialRecorderActivity extends AppCompatActivity
 
     private  boolean uploadNextImage = false;
     private int currentView;
+    private static final Object loadingLock = new Object();
     private CoordinatorLayout bottomSheet;
     private Button captureButton;
     private Button returnButton;
     private Button confirmButton;
     private Button rejectButton;
     private Button acceptButton;
-    private ProgressBar progressBar;
+    private CircularProgressIndicator progressBar;
     private TextView itemTitle;
     private ImageView itemImage;
     private ImageView backgroundImage;
@@ -410,6 +412,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
     protected void switchView (int view) {
         switch (view) {
             case 1:
+                currentView = 1;
                 progressBar.setVisibility(View.INVISIBLE);
                 returnButton.setVisibility(View.INVISIBLE);
                 confirmButton.setVisibility(View.INVISIBLE);
@@ -420,15 +423,20 @@ public class SpacialRecorderActivity extends AppCompatActivity
                 captureButton.setVisibility(View.VISIBLE);
                 break;
             case 2:
+                currentView = 2;
                 captureButton.setVisibility(View.INVISIBLE);
                 surfaceView.setVisibility(View.INVISIBLE);
 
                 backgroundImage.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.VISIBLE);
                 returnButton.setVisibility(View.VISIBLE);
-                switchView(3);
+                loadingWait();
                 break;
             case 3:
+                if (currentView == 1) {
+                    break;
+                }
+                currentView = 3;
                 progressBar.setVisibility(View.INVISIBLE);
 
                 confirmButton.setVisibility(View.VISIBLE);
@@ -442,6 +450,49 @@ public class SpacialRecorderActivity extends AppCompatActivity
     itemDescription.setText(description);
     itemImage.setImageResource(img);
     }
+
+    protected void loadingWait () {
+
+        Thread loadingThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (loadingLock) {
+                    try {
+                        System.out.println("Thread A: Waiting for notification...");
+                        loadingLock.wait();  // Thread A waits until notified
+                        System.out.println("Thread A: Notified and now continuing...");
+                        runOnUiThread(() -> {
+                            switchView(3);
+                        });
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+        Thread timeOutThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Make the current thread sleep for 2 seconds (2000 milliseconds)
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    System.out.println("Thread interrupted");
+                }
+                loadingNotify();
+            }
+        });
+        loadingThread.start();
+        timeOutThread.start();
+    }
+
+    protected void loadingNotify() {
+        synchronized (loadingLock) {
+            loadingLock.notify();
+        }
+    }
+
     @Override
     protected void onDestroy() {
         if (sharedSession != null) {
@@ -773,12 +824,15 @@ public class SpacialRecorderActivity extends AppCompatActivity
                     
                     if (responseCode == HttpURLConnection.HTTP_OK) {
                         Log.i(TAG, "Image uploaded successfully");
+                        loadingNotify();
                     } else {
                         Log.e(TAG, "Upload failed with response code: " + responseCode);
+                        loadingNotify();
                     }
                     conn.disconnect();
                 } catch (Exception e) {
                     Log.e(TAG, "Failed to upload image: " + e.getMessage(), e);
+                    loadingNotify();
                 }
             }).start();
             
