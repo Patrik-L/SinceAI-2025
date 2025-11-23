@@ -35,6 +35,7 @@ def upload_spacial_image(spacial_image: SpacialImage):
     """Receive spatial image from Android app and process it"""
     
     try:
+        print("new spacial image received")
         imagePath = process_spacial_image(spacial_image)
         
         # Open image using Pillow and encode as base64
@@ -55,6 +56,7 @@ def upload_spacial_image(spacial_image: SpacialImage):
             "imageData": image_data
         }
     except Exception as e:
+        print(f"Error processing spatial image: {e}")
         return {"status": "error", "message": str(e)}
 
 
@@ -93,8 +95,8 @@ def process_spacial_image(spacial_image: SpacialImage):
             print("[DEBUG] AI stack not enabled, skipping model execution.")
             processed_image.detectedMatches = []
 
-        print("Processed image saved to:", filename)
-        return filename
+        print("Processed image saved to:", outImageName)
+        return outImageName
 
     except base64.binascii.Error:
         print(f"Image saved to: {filename}")
