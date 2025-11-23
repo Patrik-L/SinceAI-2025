@@ -1,3 +1,4 @@
 src/__pycache__
-processed_images
+processed_images/*
+!processed_images/.gitkeep
 __pycache__
