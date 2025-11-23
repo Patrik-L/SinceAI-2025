@@ -395,7 +395,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
         rejectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                setItemData("Bepis","Patrik tykkää kuunnella penile lorea", R.drawable.banana);
+                setItemData("Banana","Did you know that Banana in German is Banane?", R.drawable.banana);
             }
         });
 
