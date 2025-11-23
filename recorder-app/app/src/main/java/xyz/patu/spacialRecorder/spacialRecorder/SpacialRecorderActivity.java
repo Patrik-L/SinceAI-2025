@@ -746,7 +746,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
             // Upload spatial image json to rest server
             new Thread(() -> {
                 try {
-                    String host = "https://4f1af25b73ef.ngrok-free.app";
+                    String host = "https://34c50899f48b.ngrok-free.app";
                     URL url = new URL(host + "/uploadSpacialImage");
                     Log.i(TAG, "Uploading to: " + url.toString());
 

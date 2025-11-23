@@ -1,4 +1,4 @@
-name: sinceAI-Rest
+name: sinceAI
 channels:
   - defaults
   - conda-forge
