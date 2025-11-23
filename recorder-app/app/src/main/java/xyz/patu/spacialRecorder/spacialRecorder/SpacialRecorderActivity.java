@@ -616,7 +616,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
                         2000,
                         2000,
                         ImageFormat.JPEG,
-                        1);
+                        2);
         cpuImageReader.setOnImageAvailableListener(this, backgroundHandler);
 
         // When ARCore is running, make sure it also updates our CPU image surface.
