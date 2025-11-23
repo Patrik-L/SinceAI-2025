@@ -478,7 +478,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
             public void run() {
                 try {
                     // Make the current thread sleep for 60 seconds (60000 milliseconds)
-                    Thread.sleep(60000);
+                    Thread.sleep(30000);
                 } catch (InterruptedException e) {
                     System.out.println("Thread interrupted");
                 }
