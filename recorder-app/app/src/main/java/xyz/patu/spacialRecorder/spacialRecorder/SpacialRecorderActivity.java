@@ -68,6 +68,7 @@ import com.google.ar.core.Session;
 import com.google.ar.core.SharedCamera;
 import com.google.ar.core.Trackable;
 import com.google.ar.core.TrackingState;
+
 import xyz.patu.spacialRecorder.common.helpers.CameraPermissionHelper;
 import xyz.patu.spacialRecorder.common.helpers.DisplayRotationHelper;
 import xyz.patu.spacialRecorder.common.helpers.FullScreenHelper;
@@ -78,6 +79,7 @@ import xyz.patu.spacialRecorder.common.rendering.ObjectRenderer;
 import xyz.patu.spacialRecorder.common.rendering.ObjectRenderer.BlendMode;
 import xyz.patu.spacialRecorder.common.rendering.PlaneRenderer;
 import xyz.patu.spacialRecorder.common.rendering.PointCloudRenderer;
+
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableException;
 
@@ -124,6 +126,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
     // Required for test run.
     private static final Short AUTOMATOR_DEFAULT = 0;
     private static final String AUTOMATOR_KEY = "automator";
+    private static final Object loadingLock = new Object();
     // Whether the app has just entered non-AR mode.
     private final AtomicBoolean isFirstFrameWithoutArcore = new AtomicBoolean(true);
     // Ensure GL surface draws only occur when new frames are available.
@@ -181,10 +184,8 @@ public class SpacialRecorderActivity extends AppCompatActivity
     private GLSurfaceView surfaceView;
     private TextView coordinateTextView;
     private float focalLength;
-
-    private  boolean uploadNextImage = false;
+    private boolean uploadNextImage = false;
     private int currentView;
-    private static final Object loadingLock = new Object();
     private CoordinatorLayout bottomSheet;
     private Button captureButton;
     private Button returnButton;
@@ -206,39 +207,6 @@ public class SpacialRecorderActivity extends AppCompatActivity
     private List<CaptureRequest.Key<?>> keysThatCanCauseCaptureDelaysWhenModified;
     // Camera device. Used by both non-AR and AR modes.
     private CameraDevice cameraDevice;
-    // Camera device state callback.
-    private final CameraDevice.StateCallback cameraDeviceCallback =
-            new CameraDevice.StateCallback() {
-                @Override
-                public void onOpened(@NonNull CameraDevice cameraDevice) {
-                    Log.d(TAG, "Camera device ID " + cameraDevice.getId() + " opened.");
-                    SpacialRecorderActivity.this.cameraDevice = cameraDevice;
-                            createCameraPreviewSession();
-                }
-
-                @Override
-                public void onClosed(@NonNull CameraDevice cameraDevice) {
-                    Log.d(TAG, "Camera device ID " + cameraDevice.getId() + " closed.");
-                    SpacialRecorderActivity.this.cameraDevice = null;
-                    safeToExitApp.open();
-                }
-
-                @Override
-                public void onDisconnected(@NonNull CameraDevice cameraDevice) {
-                    Log.w(TAG, "Camera device ID " + cameraDevice.getId() + " disconnected.");
-                    cameraDevice.close();
-                    SpacialRecorderActivity.this.cameraDevice = null;
-                }
-
-                @Override
-                public void onError(@NonNull CameraDevice cameraDevice, int error) {
-                    Log.e(TAG, "Camera device ID " + cameraDevice.getId() + " error " + error);
-                    cameraDevice.close();
-                    SpacialRecorderActivity.this.cameraDevice = null;
-                    // Fatal error. Quit application.
-                    finish();
-                }
-            };
     // Looper handler thread.
     private HandlerThread backgroundThread;
     // Looper handler.
@@ -251,7 +219,6 @@ public class SpacialRecorderActivity extends AppCompatActivity
     private boolean arcoreActive;
     // Whether the GL surface has been created.
     private boolean surfaceCreated;
-
     private Pose currentPosition;
     /**
      * Whether an error was thrown during session creation.
@@ -261,7 +228,6 @@ public class SpacialRecorderActivity extends AppCompatActivity
     private CaptureRequest.Builder previewCaptureRequestBuilder;
     // Image reader that continuously processes CPU images.
     private ImageReader cpuImageReader;
-
     private boolean continuousMode = false;
     private int cpuImagesProcessed;
     // Various helper classes, see hello_ar_java sample to learn more.
@@ -322,6 +288,39 @@ public class SpacialRecorderActivity extends AppCompatActivity
                     Log.e(TAG, "Failed to configure camera capture session.");
                 }
             };
+    // Camera device state callback.
+    private final CameraDevice.StateCallback cameraDeviceCallback =
+            new CameraDevice.StateCallback() {
+                @Override
+                public void onOpened(@NonNull CameraDevice cameraDevice) {
+                    Log.d(TAG, "Camera device ID " + cameraDevice.getId() + " opened.");
+                    SpacialRecorderActivity.this.cameraDevice = cameraDevice;
+                    createCameraPreviewSession();
+                }
+
+                @Override
+                public void onClosed(@NonNull CameraDevice cameraDevice) {
+                    Log.d(TAG, "Camera device ID " + cameraDevice.getId() + " closed.");
+                    SpacialRecorderActivity.this.cameraDevice = null;
+                    safeToExitApp.open();
+                }
+
+                @Override
+                public void onDisconnected(@NonNull CameraDevice cameraDevice) {
+                    Log.w(TAG, "Camera device ID " + cameraDevice.getId() + " disconnected.");
+                    cameraDevice.close();
+                    SpacialRecorderActivity.this.cameraDevice = null;
+                }
+
+                @Override
+                public void onError(@NonNull CameraDevice cameraDevice, int error) {
+                    Log.e(TAG, "Camera device ID " + cameraDevice.getId() + " error " + error);
+                    cameraDevice.close();
+                    SpacialRecorderActivity.this.cameraDevice = null;
+                    // Fatal error. Quit application.
+                    finish();
+                }
+            };
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -330,7 +329,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
         initUiComponents();
     }
 
-    protected void initUiComponents () {
+    protected void initUiComponents() {
         setContentView(R.layout.activity_main);
 
         Bundle extraBundle = getIntent().getExtras();
@@ -379,7 +378,6 @@ public class SpacialRecorderActivity extends AppCompatActivity
         backgroundImage = findViewById(R.id.background_img);
 
 
-
         returnButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -397,7 +395,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
         rejectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                setItemData("Banana","Did you know that Banana in German is Banane?", R.drawable.banana);
+                setItemData("Banana", "Did you know that Banana in German is Banane?", R.drawable.banana);
             }
         });
 
@@ -409,7 +407,8 @@ public class SpacialRecorderActivity extends AppCompatActivity
         });
         switchView(1);
     }
-    protected void switchView (int view) {
+
+    protected void switchView(int view) {
         switch (view) {
             case 1:
                 currentView = 1;
@@ -445,13 +444,13 @@ public class SpacialRecorderActivity extends AppCompatActivity
         }
     }
 
-    protected void setItemData(String title, String description, int img ) {
-    itemTitle.setText(title);
-    itemDescription.setText(description);
-    itemImage.setImageResource(img);
+    protected void setItemData(String title, String description, int img) {
+        itemTitle.setText(title);
+        itemDescription.setText(description);
+        itemImage.setImageResource(img);
     }
 
-    protected void loadingWait () {
+    protected void loadingWait() {
 
         Thread loadingThread = new Thread(new Runnable() {
             @Override
@@ -790,14 +789,14 @@ public class SpacialRecorderActivity extends AppCompatActivity
         }
     }
 
-    private  void uploadSpacialImage(JSONObject spacialImage) {
+    private void uploadSpacialImage(JSONObject spacialImage) {
         Log.i(TAG, "Uploading image:" + spacialImage);
         try {
             writeToFile(spacialImage.toString(2));
             // Upload spatial image json to rest server
             new Thread(() -> {
                 try {
-                    String host = "https://sinceai.patu.xyz";
+                    String host = "https://f51459fcd874.ngrok-free.app";
                     URL url = new URL(host + "/uploadSpacialImage");
                     Log.i(TAG, "Uploading to: " + url.toString());
 
@@ -809,7 +808,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
                     byte[] input = spacialImage.toString().getBytes(StandardCharsets.UTF_8);
                     int postDataLength = input.length;
 
-                    // --- FIX: Set the Content-Length header ---
+                    // Set the Content-Length header
                     conn.setRequestProperty("Content-Length", Integer.toString(postDataLength));
 
                     conn.setDoOutput(true);
@@ -818,12 +817,38 @@ public class SpacialRecorderActivity extends AppCompatActivity
                     try (OutputStream os = conn.getOutputStream()) {
                         os.write(input, 0, postDataLength);
                     }
-                    
+
                     int responseCode = conn.getResponseCode();
                     Log.i(TAG, "Upload response code: " + responseCode);
-                    
+
                     if (responseCode == HttpURLConnection.HTTP_OK) {
-                        Log.i(TAG, "Image uploaded successfully");
+                        // Read response body
+                        java.io.BufferedReader reader = new java.io.BufferedReader(
+                                new java.io.InputStreamReader(conn.getInputStream())
+                        );
+                        StringBuilder response = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            response.append(line);
+                        }
+                        reader.close();
+
+                        // Parse JSON response
+                        JSONObject responseJson = new JSONObject(response.toString());
+                        String imageDataBase64 = responseJson.getString("imageData");
+
+                        // Decode base64 image data to byte array
+                        byte[] decodedImageBytes = Base64.decode(imageDataBase64, Base64.NO_WRAP);
+
+                        // Convert byte array to Bitmap and set to backgroundImage
+                        android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedImageBytes, 0, decodedImageBytes.length);
+                        
+                        runOnUiThread(() -> {
+                            backgroundImage.setImageBitmap(bitmap);
+                        });
+
+                        Log.i(TAG, "Image processed successfully. Decoded image size: " + decodedImageBytes.length + " bytes");
+
                         loadingNotify();
                     } else {
                         Log.e(TAG, "Upload failed with response code: " + responseCode);
@@ -835,7 +860,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
                     loadingNotify();
                 }
             }).start();
-            
+
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
@@ -849,8 +874,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
             outputStreamWriter.write(data);
             outputStreamWriter.close();
             Log.i(TAG, "wrote file successfully");
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             Log.e(TAG, "File write failed: " + e.toString());
         }
 
@@ -863,7 +887,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
 
         Log.w(TAG, "data.length=" + bytes.length + "; width=" + image.getWidth() + "; height=" + image.getHeight());
 
-        String encodedString = Base64.encodeToString(bytes,Base64.NO_WRAP);
+        String encodedString = Base64.encodeToString(bytes, Base64.NO_WRAP);
 
         JSONObject spacialImage = new JSONObject();
         float[] pos = currentPosition.getTranslation();
@@ -895,21 +919,20 @@ public class SpacialRecorderActivity extends AppCompatActivity
             return;
         }
 
-        if(!arcoreActive) {
+        if (!arcoreActive) {
             image.close();
             return;
         }
 
-        if(uploadNextImage) {
+        if (uploadNextImage) {
             uploadNextImage = false;
             this.uploadSpacialImage(imageToSpacialImage(image));
         }
 
-        if(continuousMode) {
+        if (continuousMode) {
             JSONObject spacialImage = this.imageToSpacialImage(image);
 
         }
-
 
 
         image.close();
