@@ -1,0 +1,9 @@
+name: sinceAI-Rest
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python
+  - fastapi
+  - uvicorn
+  - pydantic

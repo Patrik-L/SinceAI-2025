@@ -1,0 +1,22 @@
+name: sinceAI
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python
+  - transformers>=4.49.0
+  - pillow
+  - timm
+  - datasets
+  - pip
+  - evaluate
+  - accelerate
+  - numpy
+  - conda-forge::opencv
+  - fastapi
+  - uvicorn
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/rocm6.4
+      - torch
+      - torchvision
+      - ultralytics

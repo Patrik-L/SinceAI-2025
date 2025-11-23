@@ -1,9 +1,9 @@
-name: sinceAI
+name: transformer-test
 channels:
   - defaults
   - conda-forge
 dependencies:
-  - python
+  - python==3.10
   - transformers>=4.49.0
   - pillow
   - timm
@@ -11,10 +11,9 @@ dependencies:
   - pip
   - evaluate
   - accelerate
-  - numpy
-  - conda-forge::opencv
   - pip:
       - --extra-index-url https://download.pytorch.org/whl/rocm6.4
       - torch
       - torchvision
-      - ultralytics
+
+  # !pip install -U transformers datasets evaluate accelerate timm

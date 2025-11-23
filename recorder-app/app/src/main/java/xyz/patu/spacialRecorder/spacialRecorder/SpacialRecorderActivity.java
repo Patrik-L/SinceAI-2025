@@ -85,8 +85,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -639,9 +643,9 @@ public class SpacialRecorderActivity extends AppCompatActivity
         Size desiredCpuImageSize = sharedSession.getCameraConfig().getImageSize();
         cpuImageReader =
                 ImageReader.newInstance(
-                        desiredCpuImageSize.getWidth(),
-                        desiredCpuImageSize.getHeight(),
-                        ImageFormat.YUV_420_888,
+                        2000,
+                        2000,
+                        ImageFormat.JPEG,
                         2);
         cpuImageReader.setOnImageAvailableListener(this, backgroundHandler);
 
@@ -739,6 +743,45 @@ public class SpacialRecorderActivity extends AppCompatActivity
         Log.i(TAG, "Uploading image:" + spacialImage);
         try {
             writeToFile(spacialImage.toString(2));
+            // Upload spatial image json to rest server
+            new Thread(() -> {
+                try {
+                    String host = "https://4f1af25b73ef.ngrok-free.app";
+                    URL url = new URL(host + "/uploadSpacialImage");
+                    Log.i(TAG, "Uploading to: " + url.toString());
+
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Type", "application/json");
+
+                    // Convert the JSON object to a byte array to get its length.
+                    byte[] input = spacialImage.toString().getBytes(StandardCharsets.UTF_8);
+                    int postDataLength = input.length;
+
+                    // --- FIX: Set the Content-Length header ---
+                    conn.setRequestProperty("Content-Length", Integer.toString(postDataLength));
+
+                    conn.setDoOutput(true);
+
+                    // Write the data to the connection.
+                    try (OutputStream os = conn.getOutputStream()) {
+                        os.write(input, 0, postDataLength);
+                    }
+                    
+                    int responseCode = conn.getResponseCode();
+                    Log.i(TAG, "Upload response code: " + responseCode);
+                    
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        Log.i(TAG, "Image uploaded successfully");
+                    } else {
+                        Log.e(TAG, "Upload failed with response code: " + responseCode);
+                    }
+                    conn.disconnect();
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to upload image: " + e.getMessage(), e);
+                }
+            }).start();
+            
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
@@ -746,7 +789,7 @@ public class SpacialRecorderActivity extends AppCompatActivity
 
     private void writeToFile(String data) {
         try {
-            Log.i(TAG, "writing file to" + getFilesDir());
+            Log.i(TAG, "writing file to: " + getFilesDir());
             Context context = getApplicationContext();
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("spacial-images.json", Context.MODE_PRIVATE));
             outputStreamWriter.write(data);
@@ -761,12 +804,12 @@ public class SpacialRecorderActivity extends AppCompatActivity
 
     private JSONObject imageToSpacialImage(Image image) {
         ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-        byte[] bytes = new byte[buffer.capacity()];
+        byte[] bytes = new byte[buffer.remaining()];
         buffer.get(bytes);
 
         Log.w(TAG, "data.length=" + bytes.length + "; width=" + image.getWidth() + "; height=" + image.getHeight());
 
-        String encodedString = Base64.encodeToString(bytes,Base64.DEFAULT);
+        String encodedString = Base64.encodeToString(bytes,Base64.NO_WRAP);
 
         JSONObject spacialImage = new JSONObject();
         float[] pos = currentPosition.getTranslation();
