@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import base64
 import os
+import model
 from datetime import datetime
 
 app = FastAPI()
@@ -13,6 +14,13 @@ class SpacialImage(BaseModel):
     focalLength: float
     position: dict
     rotation: list = None
+
+class ProcessedImage():
+    outputImage: str
+    focalLength: float
+    position: dict
+    rotation: list = None
+    detectedMatches: list
 
 
 @app.get("/")
@@ -36,7 +44,7 @@ def upload_spacial_image(spacial_image: SpacialImage):
         return {"status": "error", "message": str(e)}
 
 
-def process_spacial_image(spacial_image: SpacialImage):
+def process_spacial_image(spacial_image: SpacialImage, processed_image: ProcessedImage):
     """Process the received spatial image"""
     print(f"[DEBUG] Processing spatial image at position: ({spacial_image.position['x']}, {spacial_image.position['y']}, {spacial_image.position['z']})")
     print(f"[DEBUG] Image data length: {len(spacial_image.image)}")
@@ -67,9 +75,10 @@ def process_spacial_image(spacial_image: SpacialImage):
         
         print(f"[DEBUG] Image saved to: {filename}")
         
-        # Add your further processing logic here
-        # e.g., ML inference, object detection, database storage, etc.
-        
+        det_matches, outImage = model.executeModel(filename)
+
+        processed_image.outputImage = outImage
+
     except base64.binascii.Error as e:
         print(f"[ERROR] Base64 decoding failed: {e}")
         raise
@@ -81,3 +90,13 @@ def process_spacial_image(spacial_image: SpacialImage):
         import traceback
         traceback.print_exc()
         raise
+
+
+
+def post_processed_image(spacial_image: SpacialImage, processed_image: ProcessedImage):
+    print(f"[DEBUG] Spacial image postion: ({spacial_image.position['x']}, {spacial_image.position['y']}, {spacial_image.position['z']})")
+    print(f"[DEBUG] Image data length: {len(spacial_image.image)}")
+    print(f"[DEBUG] Focal length: {spacial_image.focalLength}")
+    print(f"[DEBUG] Rotation: {spacial_image.rotation}")
+    print(f"[DEBUG] Processed image detected item list: ({process_spacial_image.detected_matches})")
+    print(f"[DEBUG] Processed image's data length: {process_spacial_image.outputImage}")
