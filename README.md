@@ -11,7 +11,7 @@ Our idea is to make a way to detect technical devices during the 3D scanning pro
 
 ## Usage
 
-The build can be downloaded to the phone to try it out. With the application you'll take a photo, the photo will be processed by a model through fastAPI, and sent back to the phone. The processed photo has the identified objects marked with information. It currently uses generic data to identify any objects, and has a test UI template for showing information about the identified objects.
+The demo can be downloaded to the phone from **releases** to try it out. With the application you'll take a photo, the photo will be processed by a model through fastAPI, and sent back to the phone. The processed photo has the identified objects marked with information. It currently uses generic data to identify any objects, and has a test UI template for showing information about the identified objects.
 
 ## Future plans
 
