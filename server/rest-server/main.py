@@ -35,21 +35,38 @@ def upload_spacial_image(spacial_image: SpacialImage):
     """Receive spatial image from Android app and process it"""
     
     try:
-        processed_image = ProcessedImage()
-        process_spacial_image(spacial_image, processed_image)
-        return {"status": "success", "message": "Image processed successfully", "aiStackEnabled": AI_STACK_ENABLED}
+        imagePath = process_spacial_image(spacial_image)
+        
+        # Open image using Pillow and encode as base64
+        image = Image.open(imagePath)
+        
+        # Convert image to bytes
+        img_byte_arr = io.BytesIO()
+        image.save(img_byte_arr, format='JPEG')
+        img_byte_arr.seek(0)
+        
+        # Encode to base64
+        image_data = base64.b64encode(img_byte_arr.getvalue()).decode('utf-8')
+        
+        return {
+            "status": "success", 
+            "message": "Image processed successfully", 
+            "aiStackEnabled": AI_STACK_ENABLED,
+            "imageData": image_data
+        }
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
 
-def process_spacial_image(spacial_image: SpacialImage, processed_image: ProcessedImage):
+def process_spacial_image(spacial_image: SpacialImage):
     """Process the received spatial image"""
     try:
         # Decode base64 image
         image = Image.open(io.BytesIO(base64.b64decode(spacial_image.imageData)))
         image = image.rotate(-90, expand=True)
         
-        print("recieved spacial image with size:", image.size)
+        print("Recieved spacial image with size:", image.size)
+        
         
         # Create output directory if it doesn't exist
         output_dir = "original_images"
@@ -61,6 +78,8 @@ def process_spacial_image(spacial_image: SpacialImage, processed_image: Processe
         
         # Save decoded image to file
         image.save(filename, "JPEG")
+        
+        processed_image = ProcessedImage()
         
         # Only run model if AI stack is enabled
         if AI_STACK_ENABLED:
@@ -74,7 +93,8 @@ def process_spacial_image(spacial_image: SpacialImage, processed_image: Processe
             print("[DEBUG] AI stack not enabled, skipping model execution.")
             processed_image.detectedMatches = []
 
-        print("processed image", processed_image)
+        print("Processed image saved to:", filename)
+        return filename
 
     except base64.binascii.Error:
         print(f"Image saved to: {filename}")
