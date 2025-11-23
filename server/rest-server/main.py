@@ -67,9 +67,12 @@ def process_spacial_image(spacial_image: SpacialImage, processed_image: Processe
             processed_image.outputImage = outputtedImage
             processed_image.detectedMatches = det_matches
         else:
-            processed_image.outputImage = filename
+            outputtedImage = Image.open("./debug_images/processed_image.jpg")
+            processed_image.outputImage = outputtedImage
             print("[DEBUG] AI stack not enabled, skipping model execution.")
             processed_image.detectedMatches = []
+
+        print("processed image", processed_image)
 
     except base64.binascii.Error:
         print(f"Image saved to: {filename}")
