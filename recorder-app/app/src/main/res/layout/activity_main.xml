@@ -149,30 +149,39 @@
                     android:id="@+id/item_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:padding="5dp"
                     android:text="Ilmanvaihtoventtiili Kotka Free Ff 100 Swegon" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:padding="5dp">
 
                     <ImageView
                         android:id="@+id/item_image"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="200dp"
+                        android:layout_height="200dp"
                         android:layout_weight="1"
                         android:src="@drawable/test_pic" />
+
                 </LinearLayout>
 
                 <TextView
                     android:id="@+id/item_description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:padding="10dp"
                     android:text="Technical information Brand: Swegon Serial number: 66421131 Connector size: 100 mm Draft 30 dBA:ssa: 22 l/s Color: White Size: 304 mm Height: 192 mm" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="5dp" />
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="250dp"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:padding="10dp">
 
                     <Button
                         android:id="@+id/item_reject_button"
